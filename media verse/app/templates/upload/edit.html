@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Edit - {{ upload.title }} - Media Verse{% endblock %}
+{% block content %}
+<div class="main-content">
+  <div class="upload-page">
+    <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:24px">Edit Upload</h1>
+    <div class="card">
+      <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input type="text" name="title" class="form-control" value="{{ upload.title }}" required maxlength="200">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea name="description" class="form-control" rows="4">{{ upload.description }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select name="category" class="form-control">
+            {% for cat in categories %}
+            <option value="{{ cat }}" {{ 'selected' if upload.category == cat }}>{{ cat|title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        {% if upload.thumbnail_url %}
+        <div class="form-group">
+          <label class="form-label">Current Thumbnail</label>
+          <img src="{{ upload.thumbnail_url }}" style="max-width:320px;border-radius:var(--radius-sm)">
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+          <label class="form-label">New Thumbnail (optional)</label>
+          <input type="file" name="thumbnail" class="form-control" accept="image/*">
+        </div>
+
+        <div style="display:flex;gap:12px">
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+          <a href="{{ url_for('upload.view', upload_id=upload.id) }}" class="btn btn-ghost">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
