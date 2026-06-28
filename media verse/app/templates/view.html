@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}{{ upload.title }} - Media Verse{% endblock %}
+{% block content %}
+<div class="main-content">
+  <div class="view-layout">
+    <!-- Main content -->
+    <div>
+      <!-- Media Player -->
+      {% if upload.file_type == 'video' %}
+      <div class="player-wrap">
+        <video controls autoplay preload="metadata" style="width:100%;height:100%">
+          <source src="{{ upload.file_url }}">
+          Your browser does not support video playback.
+        </video>
+      </div>
+
+      {% elif upload.file_type == 'image' %}
+      <div class="player-wrap" style="aspect-ratio:auto;max-height:70vh;display:flex;align-items:center;justify-content:center;background:var(--bg-card);">
+        <img src="{{ upload.file_url }}" alt="{{ upload.title }}" style="max-height:70vh;width:auto;object-fit:contain;border-radius:var(--radius)">
+      </div>
+
+      {% elif upload.file_type == 'audio' %}
+      <div class="audio-wrap" style="border-radius:var(--radius);border:1px solid var(--border)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" width="64" height="64">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+        <audio controls style="width:90%">
+          <source src="{{ upload.file_url }}">
+          Your browser does not support audio playback.
+        </audio>
+      </div>
+
+      {% elif upload.file_type == 'pdf' %}
+      <div style="border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);height:70vh">
+        <iframe src="{{ upload.file_url }}" style="width:100%;height:100%;border:none"></iframe>
+      </div>
+
+      {% else %}
+      <div class="doc-wrap" style="border:1px solid var(--border)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" width="64" height="64">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+        </svg>
+        <h3>{{ upload.title }}</h3>
+        <p style="color:var(--text-muted);font-size:0.88rem">{{ upload.file_type|upper }} file</p>
+        <a href="{{ upload.file_url }}" download class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download File
+        </a>
+      </div>
+      {% endif %}
+
+      <!-- Title & Meta -->
+      <h1 class="upload-title">{{ upload.title }}</h1>
+      <div class="upload-meta">
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="display:inline;vertical-align:middle">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+          <span id="view-count">{{ upload.view_count|numformat }}</span> views
+        </span>
+        <span class="tag">{{ upload.category }}</span>
+        <span>{{ upload.created_at|timeago }}</span>
+      </div>
+
+      <!-- Uploader row -->
+      <div class="uploader-row">
+        <div class="uploader-info">
+          <a href="{{ url_for('profile.view', username=upload.owner.username) }}">
+            <img src="{{ upload.owner.avatar }}" alt="{{ upload.owner.display_name }}">
+          </a>
+          <div>
+            <div class="uploader-name">
+              <a href="{{ url_for('profile.view', username=upload.owner.username) }}"
+                 style="color:var(--text-primary)">{{ upload.owner.display_name }}</a>
+            </div>
+            <div class="uploader-subs">{{ upload.owner.followers_count|numformat }} followers</div>
+          </div>
+          {% if current_user.is_authenticated and current_user.id != upload.owner.id %}
+          <form method="POST"
+                action="{{ url_for('profile.follow' if not current_user.is_following(upload.owner) else 'profile.unfollow', user_id=upload.owner.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm {{ 'btn-ghost' if current_user.is_following(upload.owner) else 'btn-primary' }}">
+              {{ 'Unfollow' if current_user.is_following(upload.owner) else 'Follow' }}
+            </button>
+          </form>
+          {% endif %}
+        </div>
+
+        <div class="action-bar">
+          <button class="btn-like {{ 'liked' if user_liked }}" id="like-btn"
+                  data-upload-id="{{ upload.id }}"
+                  {% if not current_user.is_authenticated %}onclick="window.location='/auth/login'"{% endif %}>
+            <svg viewBox="0 0 24 24" fill="{{ 'currentColor' if user_liked else 'none' }}" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            <span class="like-count">{{ upload.like_count|numformat }}</span> Likes
+          </button>
+
+          <a href="{{ upload.file_url }}" download class="btn btn-ghost btn-sm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download
+          </a>
+
+          {% if current_user.is_authenticated and current_user.id == upload.user_id %}
+          <a href="{{ url_for('upload.edit', upload_id=upload.id) }}" class="btn btn-ghost btn-sm">Edit</a>
+          <form method="POST" action="{{ url_for('upload.delete', upload_id=upload.id) }}"
+                onsubmit="return confirm('Delete this upload permanently?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Description -->
+      {% if upload.description %}
+      <div class="upload-desc">{{ upload.description }}</div>
+      {% endif %}
+
+      <!-- Comments -->
+      <div class="comments-section">
+        <div class="comments-header">
+          <span id="comment-count">{{ upload.comment_count|numformat }}</span> Comments
+        </div>
+
+        {% if current_user.is_authenticated %}
+        <div class="comment-form" id="comment-form" data-upload-id="{{ upload.id }}">
+          <img src="{{ current_user.avatar }}" alt="{{ current_user.display_name }}">
+          <div class="comment-input-wrap">
+            <textarea class="comment-input" placeholder="Add a comment..." rows="1"></textarea>
+            <div class="comment-actions-row">
+              <button class="btn btn-ghost btn-sm comment-cancel hidden">Cancel</button>
+              <button class="btn btn-primary btn-sm comment-submit hidden">Post</button>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <p style="margin-bottom:16px;font-size:0.9rem;color:var(--text-muted)">
+          <a href="{{ url_for('auth.login') }}">Sign in</a> to comment
+        </p>
+        {% endif %}
+
+        <div class="comment-list" id="comment-list">
+          {% for comment in comments %}
+          <div class="comment-item" data-comment-id="{{ comment.id }}">
+            <img src="{{ comment.author.avatar }}" alt="{{ comment.author.display_name }}">
+            <div class="comment-body">
+              <div class="comment-author">
+                <a href="{{ url_for('profile.view', username=comment.author.username) }}">
+                  {{ comment.author.display_name }}
+                </a>
+                <span>{{ comment.created_at|timeago }}</span>
+              </div>
+              <p class="comment-text">{{ comment.content }}</p>
+              {% if current_user.is_authenticated and comment.user_id == current_user.id %}
+              <div class="comment-btns">
+                <button class="comment-btn" data-edit-comment="{{ comment.id }}">Edit</button>
+                <button class="comment-btn danger" data-delete-comment="{{ comment.id }}">Delete</button>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar: Related -->
+    <div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:16px">Related</h3>
+      {% if related %}
+      <div class="related-list">
+        {% for r in related %}
+        <a href="{{ url_for('upload.view', upload_id=r.id) }}" class="related-card">
+          <div class="related-thumb">
+            <img src="{{ r.thumbnail }}" alt="{{ r.title }}" loading="lazy">
+          </div>
+          <div class="related-info">
+            <div class="related-title">{{ r.title }}</div>
+            <div class="related-meta">{{ r.owner.display_name }}</div>
+            <div class="related-meta">{{ r.view_count|numformat }} views &bull; {{ r.created_at|timeago }}</div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p style="color:var(--text-muted);font-size:0.88rem">No related content</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

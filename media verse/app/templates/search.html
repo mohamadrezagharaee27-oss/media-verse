@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Search: {{ q }} - Media Verse{% endblock %}
+{% block content %}
+<div class="main-content">
+  {% if q %}
+  <h2 style="margin-bottom:24px">
+    Results for "<span style="color:var(--accent)">{{ q }}</span>"
+  </h2>
+
+  {% if user_results %}
+  <div class="search-section-title">👤 Creators ({{ user_results|length }})</div>
+  <div class="user-search-grid">
+    {% for user in user_results %}
+    <a href="{{ url_for('profile.view', username=user.username) }}" class="user-search-card">
+      <img src="{{ user.avatar }}" alt="{{ user.display_name }}">
+      <div class="user-search-name">{{ user.display_name }}</div>
+      <div class="user-search-username">@{{ user.username }}</div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">
+        {{ user.followers_count }} followers
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if upload_results %}
+  <div class="search-section-title">🎬 Content ({{ upload_results|length }})</div>
+  <div class="video-grid">
+    {% for upload in upload_results %}
+    <a href="{{ url_for('upload.view', upload_id=upload.id) }}" class="video-card">
+      <div class="video-thumb">
+        <img src="{{ upload.thumbnail }}" alt="{{ upload.title }}" loading="lazy">
+        <span class="file-type-badge">{{ upload.file_type }}</span>
+      </div>
+      <div class="video-info">
+        <img src="{{ upload.owner.avatar }}" alt="{{ upload.owner.display_name }}" class="avatar">
+        <div class="video-meta">
+          <div class="video-title">{{ upload.title }}</div>
+          <div class="video-sub">
+            <a href="{{ url_for('profile.view', username=upload.owner.username) }}"
+               onclick="event.stopPropagation()">{{ upload.owner.display_name }}</a>
+            <span class="video-stats">
+              {{ upload.view_count|numformat }} views &bull; {{ upload.created_at|timeago }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% elif not user_results %}
+  <div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <h3>No results found</h3>
+    <p>Try different keywords</p>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <h3>Search Media Verse</h3>
+    <p>Find videos, music, documents and more</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Media Verse - Home{% endblock %}
+{% block content %}
+<div class="main-content">
+  <!-- Category Bar -->
+  <div class="category-bar">
+    <a href="{{ url_for('main.index') }}" class="cat-btn {{ 'active' if not current_category }}">All</a>
+    {% for cat in categories %}
+    <a href="{{ url_for('main.index', category=cat, sort=sort) }}"
+       class="cat-btn {{ 'active' if current_category == cat }}">
+      {{ cat|title }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Sort Bar -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+    <span style="font-size:0.88rem;color:var(--text-muted)">Sort by:</span>
+    {% for s, label in [('new','Latest'),('popular','Most Viewed'),('liked','Most Liked')] %}
+    <a href="{{ url_for('main.index', sort=s, category=current_category) }}"
+       class="btn btn-sm {{ 'btn-primary' if sort == s else 'btn-ghost' }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  <!-- Video Grid -->
+  {% if uploads.items %}
+  <div class="video-grid">
+    {% for upload in uploads.items %}
+    <a href="{{ url_for('upload.view', upload_id=upload.id) }}" class="video-card">
+      <div class="video-thumb">
+        <img src="{{ upload.thumbnail }}" alt="{{ upload.title }}" loading="lazy">
+        <span class="file-type-badge">{{ upload.file_type }}</span>
+      </div>
+      <div class="video-info">
+        <img src="{{ upload.owner.avatar }}" alt="{{ upload.owner.display_name }}" class="avatar">
+        <div class="video-meta">
+          <div class="video-title">{{ upload.title }}</div>
+          <div class="video-sub">
+            <a href="{{ url_for('profile.view', username=upload.owner.username) }}"
+               onclick="event.stopPropagation()">{{ upload.owner.display_name }}</a>
+            <span class="video-stats">
+              {{ upload.view_count|numformat }} views &bull;
+              {{ upload.like_count|numformat }} likes &bull;
+              {{ upload.created_at|timeago }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if uploads.pages > 1 %}
+  <div class="pagination">
+    {% if uploads.has_prev %}
+    <a href="{{ url_for('main.index', page=uploads.prev_num, category=current_category, sort=sort) }}"
+       class="page-link">← Prev</a>
+    {% endif %}
+    {% for p in uploads.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+      {% if p %}
+      <a href="{{ url_for('main.index', page=p, category=current_category, sort=sort) }}"
+         class="page-link {{ 'active' if p == uploads.page }}">{{ p }}</a>
+      {% else %}
+      <span class="page-link" style="pointer-events:none">…</span>
+      {% endif %}
+    {% endfor %}
+    {% if uploads.has_next %}
+    <a href="{{ url_for('main.index', page=uploads.next_num, category=current_category, sort=sort) }}"
+       class="page-link">Next →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M15 10l4.553-2.069A1 1 0 0 1 21 8.87v6.26a1 1 0 0 1-1.447.9L15 14M3 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z"/>
+    </svg>
+    <h3>No uploads yet</h3>
+    <p>Be the first to share something!</p>
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('upload.new') }}" class="btn btn-primary mt-2">Upload Now</a>
+    {% else %}
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary mt-2">Join & Upload</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
