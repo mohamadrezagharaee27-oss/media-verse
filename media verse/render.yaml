@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: mediaverse
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn run:app --workers 2 --worker-class sync --timeout 120 --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mediaverse-db
+          property: connectionString
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+    autoDeploy: true
+
+databases:
+  - name: mediaverse-db
+    databaseName: mediaverse
+    user: mediaverse_user
+    plan: free
