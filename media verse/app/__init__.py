@@ -38,6 +38,15 @@ def create_app():
     login_manager.init_app(app)
     migrate.init_app(app, db)
     csrf.init_app(app)
+    
+    from flask_wtf.csrf import CSRFError
+
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        return f"""
+        <h1>CSRF ERROR</h1>
+        <p>{e.description}</p>
+        """, 400
 
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
