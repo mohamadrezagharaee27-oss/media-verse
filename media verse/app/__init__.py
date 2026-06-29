@@ -13,11 +13,10 @@ login_manager = LoginManager()
 migrate = Migrate()
 csrf = CSRFProtect()
 
-csrf = CSRFProtect()
-csrf.init_app(app)
-
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = True
+
+WTF_CSRF_ENABLED = False
 
 
 def create_app():
