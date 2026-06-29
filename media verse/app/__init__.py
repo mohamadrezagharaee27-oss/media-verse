@@ -13,9 +13,16 @@ login_manager = LoginManager()
 migrate = Migrate()
 csrf = CSRFProtect()
 
+csrf = CSRFProtect()
+csrf.init_app(app)
+
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = True
+
 
 def create_app():
     app = Flask(__name__)
+    app.config['WTF_CSRF_TIME_LIMIT'] = None
 
     # Configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-prod')
