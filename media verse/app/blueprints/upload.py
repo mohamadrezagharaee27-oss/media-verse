@@ -60,7 +60,15 @@ def upload_to_cloudinary(file, resource_type='auto', folder='mediaverse'):
 @upload_bp.route('/new', methods=['GET', 'POST'])
 @login_required
 def new():
+
+    current_app.logger.info("========== NEW REQUEST ==========")
+    current_app.logger.info(f"Method: {request.method}")
+
     if request.method == 'POST':
+
+        current_app.logger.info("POST STARTED")
+        current_app.logger.info(request.form)
+        current_app.logger.info(request.files)
         title = request.form.get('title', '').strip()
         description = request.form.get('description', '').strip()
         category = request.form.get('category', 'other')
@@ -95,7 +103,9 @@ def new():
                 res_type = 'raw'
 
             # Upload main file
+            current_app.logger.info("Uploading to Cloudinary...")
             result = upload_to_cloudinary(file, resource_type=res_type)
+            current_app.logger.info("Cloudinary upload finished")
             file_url = result.get('secure_url', '')
             public_id = result.get('public_id', '')
             file_size = result.get('bytes', 0)
